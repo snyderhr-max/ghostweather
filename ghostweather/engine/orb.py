@@ -11,13 +11,30 @@ def draw_glow(radius, theme):
         py5.circle(0, 0, radius + i * 14)
 
 
+def draw_volumetric_core(radius, theme):
+    r, g, b = theme["core"]
+
+    # Soft energy volume, brightest in center
+    for i in range(18, 0, -1):
+        scale = i / 18
+        alpha = int(5 + (1 - scale) * 38)
+        size = radius * scale * 1.55
+
+        py5.fill(r, g, b, alpha)
+        py5.circle(0, 0, size)
+
+    # Hot center
+    py5.fill(255, 255, 255, 22)
+    py5.circle(0, 0, radius * 0.42)
+
+
 def draw_core_shell(radius, theme):
     r, g, b = theme["core"]
 
-    py5.fill(r, g, b, 55)
+    py5.fill(r, g, b, 40)
     py5.circle(0, 0, radius * 2)
 
-    py5.fill(255, 255, 255, 28)
+    py5.fill(255, 255, 255, 20)
     py5.circle(0, 0, radius * 1.5)
 
 

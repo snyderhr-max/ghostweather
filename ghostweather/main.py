@@ -4,7 +4,7 @@ import py5
 from config import WIDTH, HEIGHT, FPS, PARTICLE_COUNT, DEFAULT_MODE
 from themes import THEMES
 from engine.particles import ParticleSystem
-from engine.orb import draw_glow, draw_core_shell, draw_glass_shell, draw_highlight
+from engine.orb import draw_glow, draw_volumetric_core, draw_core_shell, draw_glass_shell, draw_highlight
 from engine.effects import draw_lightning
 
 
@@ -39,6 +39,7 @@ def draw():
     radius = ORB_RADIUS * pulse
 
     draw_glow(radius, theme)
+    draw_volumetric_core(radius, theme)
 
     background_particles.draw(t, theme)
     mid_particles.draw(t, theme)
