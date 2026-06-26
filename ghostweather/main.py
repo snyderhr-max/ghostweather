@@ -2,70 +2,29 @@ import math
 import random
 import py5
 
-WIDTH = 720
-HEIGHT = 720
-PARTICLE_COUNT = 220
-
-MODE = "storm"  # clear, clouds, rain, storm, snow
-
-particles = []
+from config import WIDTH, HEIGHT, FPS, PARTICLE_COUNT, DEFAULT_MODE
+from themes import THEMES
+from engine.particles import ParticleSystem
 
 
-THEMES = {
-    "clear": {
-        "glow": (255, 175, 45),
-        "core": (255, 190, 70),
-        "particle": (255, 230, 120),
-        "speed": 0.75,
-    },
-    "clouds": {
-        "glow": (160, 175, 200),
-        "core": (180, 190, 210),
-        "particle": (235, 240, 255),
-        "speed": 0.45,
-    },
-    "rain": {
-        "glow": (40, 140, 255),
-        "core": (40, 130, 255),
-        "particle": (130, 210, 255),
-        "speed": 1.0,
-    },
-    "storm": {
-        "glow": (80, 90, 190),
-        "core": (45, 55, 150),
-        "particle": (180, 210, 255),
-        "speed": 1.55,
-    },
-    "snow": {
-        "glow": (170, 230, 255),
-        "core": (150, 220, 255),
-        "particle": (245, 255, 255),
-        "speed": 0.35,
-    },
-}
+MODE = DEFAULT_MODE
+ORB_RADIUS = 120
+
+background_particles = None
+mid_particles = None
+foreground_particles = None
 
 
 def setup():
+    global background_particles, mid_particles, foreground_particles
+
     py5.size(WIDTH, HEIGHT)
-    py5.frame_rate(30)
+    py5.frame_rate(FPS)
     py5.no_stroke()
 
-    for _ in range(PARTICLE_COUNT):
-        particles.append(make_particle())
-
-
-def make_particle():
-    angle = random.uniform(0, math.tau)
-    distance = random.uniform(0, 115)
-
-    return {
-        "angle": angle,
-        "distance": distance,
-        "speed": random.uniform(0.006, 0.022),
-        "size": random.uniform(2, 7),
-        "brightness": random.uniform(80, 210),
-        "wobble": random.uniform(0, math.tau),
-    }
+    background_particles = ParticleSystem(90, ORB_RADIUS, layer=0.78, speed=0.45, alpha=0.35, size=1.7)
+    mid_particles = ParticleSystem(120, ORB_RADIUS, layer=1.0, speed=1.0, alpha=0.75, size=1.0)
+    foreground_particles = ParticleSystem(45, ORB_RADIUS, layer=1.12, speed=1.35, alpha=1.0, size=0.75)
 
 
 def draw():
@@ -77,10 +36,13 @@ def draw():
     t = py5.frame_count * 0.05
     pulse = 1 + 0.04 * math.sin(t)
 
-    draw_glow(120 * pulse, theme)
-    draw_particles(t, 120, theme)
-    draw_core_shell(120 * pulse, theme)
-    draw_highlight(120 * pulse)
+    draw_glow(ORB_RADIUS * pulse, theme)
+    background_particles.draw(t, theme)
+    mid_particles.draw(t, theme)
+    foreground_particles.draw(t, theme)
+    draw_core_shell(ORB_RADIUS * pulse, theme)
+    draw_glass_shell(ORB_RADIUS * pulse)
+    draw_highlight(ORB_RADIUS * pulse)
 
     if MODE == "storm":
         draw_lightning()
@@ -95,26 +57,6 @@ def draw_glow(radius, theme):
         py5.circle(0, 0, radius + i * 14)
 
 
-def draw_particles(t, orb_radius, theme):
-    r, g, b = theme["particle"]
-    speed_multiplier = theme["speed"]
-
-    for p in particles:
-        p["angle"] += p["speed"] * speed_multiplier
-
-        wobble = math.sin(t + p["wobble"]) * 10
-        distance = p["distance"] + wobble
-
-        x = math.cos(p["angle"]) * distance
-        y = math.sin(p["angle"]) * distance * 0.72
-
-        edge_fade = 1 - min(distance / orb_radius, 1)
-        alpha = max(20, p["brightness"] * edge_fade)
-
-        py5.fill(r, g, b, alpha)
-        py5.circle(x, y, p["size"])
-
-
 def draw_core_shell(radius, theme):
     r, g, b = theme["core"]
 
@@ -123,6 +65,24 @@ def draw_core_shell(radius, theme):
 
     py5.fill(255, 255, 255, 28)
     py5.circle(0, 0, radius * 1.5)
+
+
+def draw_glass_shell(radius):
+    py5.no_fill()
+
+    py5.stroke(255, 255, 255, 22)
+    py5.stroke_weight(2.2)
+    py5.circle(0, 0, radius * 2.03)
+
+    py5.stroke(180, 220, 255, 10)
+    py5.stroke_weight(5)
+    py5.circle(0, 0, radius * 1.97)
+
+    py5.stroke(255, 255, 255, 14)
+    py5.stroke_weight(3)
+    py5.arc(0, 0, radius * 1.9, radius * 1.9, math.radians(30), math.radians(150))
+
+    py5.no_stroke()
 
 
 def draw_highlight(radius):
